@@ -7,13 +7,13 @@ import os
 from pymongo.errors import DuplicateKeyError
 
 
-class AddTweets:
-    """Adds a days worth of tweets to the DB based on word search filters."""
+class AddHistoricalTweets:
+    """Adds a months worth of tweets to the DB based on word search filters."""
 
     def __init__(self, month, year, mdb="mongodb://localhost/twitterdb",
                  filter_=dict()):
         """
-        Add.
+        Initialize.
 
         :param month: int
             Integer representing month.
@@ -80,7 +80,10 @@ class AddTweets:
         for col in self.filter.keys():
             for term in self.filter[col].keys():
                 kwords = self.filter[col][term]
-                ttext = t["text"].lower()
+                if "retweeted_status" in t.keys():
+                    ttext = t["retweeted_status"]["text"].lower()
+                else:
+                    ttext = t["text"].lower()
                 if any([k.lower() in ttext for k in kwords]):
                     if verbose:
                         print("adding New tweet for {}!!!!".format(term))
@@ -107,6 +110,6 @@ if __name__ == "__main__":
         tdl = TwitterDL(month, year)
         tdl.download_torrent()
         tdl.extract_data()
-        tweet2db = AddTweets(month, year, word_search_list)
+        tweet2db = AddHistoricalTweets(month, year, word_search_list)
         tweet2db.load_tweets()
         tdl.remove_folder()
